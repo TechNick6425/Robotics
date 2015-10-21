@@ -15,53 +15,18 @@
 #pragma platform(VEX)
 #pragma competitionControl(Competition)
 #pragma autonomousDuration(15)
-#pragma userControlDuration(125)
+#pragma userControlDuration(105)
 
 #include "Vex_Competition_Includes.c"
 
 //FL = 2 FR = 3
 //BL = 4 BR = 5
 
-int menuCurr = 0;
-bool menuCurrActive = false;
-
-void go(int v0, int v1, int v2, int v3){
-	motor[port2] = v0;
-	motor[port3] = v1;
-	motor[port4] = v2;
-	motor[port5] = v3;
-}
-
-void goarm(int v0){
-	motor[port6] = v0;
-	motor[port7] = v0;
-}
-
 int deWine(int inp){
-	if((inp < 10) && (inp > -10)){
+	if((inp < 15) && (inp > -15)){
 		return 0;
 	}
 	return inp;
-}
-
-void displayBattLevel(){
-	displayLCDString(0, 0, "Battery Level: ");
-	displayLCDNumber(1, 0, (nImmediateBatteryLevel - 3000) / 72);
-	displayNextLCDString("%");
-}
-
-void updateLCD(){
-
-	if(menuCurrActive){
-		if(menuCurr == 0){
-			displayBattLevel();
-		}
-	}else{
-		if(menuCurr == 0){
-			displayLCDCenteredString(0, "Battery Level");
-			displayLCDCenteredString(1, "<<<    GO    >>>");
-		}
-	}
 }
 
 void pre_auton(){
@@ -69,50 +34,38 @@ void pre_auton(){
 }
 
 task autonomous(){
-	goarm(127);
-	wait1Msec(2000);
-	goarm(0);
+
 }
 
 task usercontrol()
 {
-	int arm;
-	int rot;
 	while(true){
-		displayBattLevel();
-		//Change things
-		if(vexRT[Btn7D]){
-			rot = 127;
-		}else{
-			rot = 32;
-		}
-
 		//Wheels
-		motor[port2] = deWine(vexRT[Ch3]);
-		motor[port3] = deWine(vexRT[Ch2]);
-		motor[port4] = deWine(vexRT[Ch3]);
-		motor[port5] = deWine(vexRT[Ch2]);
+		motor[port2] = deWine(vexRT[Ch3] * 0.9 + vexRT[Ch1]);
+		motor[port3] = deWine(vexRT[Ch3] * 0.9 - vexRT[Ch1]);
+		motor[port4] = deWine(vexRT[Ch3] * 0.9 + vexRT[Ch1]);
+		motor[port5] = deWine(vexRT[Ch3] * 0.9 - vexRT[Ch1]);
 
-		//Arm
-		arm=vexRT[Ch1];
-		if(SensorValue[in1] != 0){
-			motor[port6] = arm;
-			motor[port7] = arm;
+		motor[portn] = deWine(vexRT[Ch4]);
+
+		//Belt
+		if(vexRT[Btn5U]){
+			motor[port6] = 127;
+		}else if(vexRT[Btn5D]){
+			motor[port6] = -127;
+		}else{
+			motor[port6] = 0;
 		}
 
-		//Claw
+		//Shooter
 		if(vexRT[Btn6U]){
 			motor[port8] = -127;
+			motor[port9] = -127;
 		}else if(vexRT[Btn6D]){
 			motor[port8] = 127;
+			motor[port9] = 127;
 		}else{
 			motor[port8] = 0;
-		}
-		if(vexRT[Btn5U]){
-			motor[port9] = rot;
-		}else if(vexRT[Btn5D]){
-			motor[port9] = -rot;
-		}else{
 			motor[port9] = 0;
 		}
 	}
